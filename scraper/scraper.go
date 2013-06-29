@@ -9,7 +9,7 @@ import (
 )
 
 func ScrapeAllTheThings(url string) {
-  pageSource := retrievePageSource("http://www.sc2ratings.com/season-info.php?season=spl2&section=Round%206")
+  pageSource := retrievePageSource(url)
 
   doc, err := gokogiri.ParseHtml(pageSource)
   errorHandler(err)
