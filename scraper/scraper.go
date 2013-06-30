@@ -17,7 +17,7 @@ func ScrapeAllTheThings(url string) {
   highest_container, err := doc.Search(".//*[@class='season-round-date-container']")
   errorHandler(err)
 
-  scrape_children_of_highest_container(highest_container)
+  fmt.Println(scrape_children_of_highest_container(highest_container))
 }
 
 func retrievePageSource(url string) []byte {
@@ -29,7 +29,8 @@ func retrievePageSource(url string) []byte {
   return body
 }
 
-func scrape_children_of_highest_container(highest_container []xml.Node) {
+func scrape_children_of_highest_container(highest_container []xml.Node) []match {
+  out := []match{}
   for i := range highest_container {
     headline, err := highest_container[i].Search(".//*[@class='headline']")
     errorHandler(err)
@@ -37,15 +38,11 @@ func scrape_children_of_highest_container(highest_container []xml.Node) {
     subhead, err := highest_container[i].Search(".//*[@class='sub-head']")
     errorHandler(err)
 
-    fmt.Println(headline)
-    fmt.Println(subhead)
-
-    matchWrapper, err := highest_container[i].Search(".//*[@class='match-wrapper']")
-    errorHandler(err)
-    for j := range matchWrapper {
-      playerName, err := matchWrapper[j].Search(".//*[@class='player-link']")
-      errorHandler(err)
-      fmt.Println(playerName)
+    for j := range subhead {
+      temp := match{matchDate:headline[0].String(), teams:subhead[j].String()}
+      out = append(out,temp)
     }
+
   }
+  return out
 }
