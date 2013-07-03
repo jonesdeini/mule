@@ -14,10 +14,10 @@ func ScrapeAllTheThings(url string) {
   doc, err := gokogiri.ParseHtml(pageSource)
   errorHandler(err)
   defer doc.Free()
-  highest_container, err := doc.Search(".//*[@class='season-round-date-container']")
+  matchWrappers, err := doc.Search(".//*[@class='match-wrapper']")
   errorHandler(err)
 
-  fmt.Println(scrape_children_of_highest_container(highest_container))
+  fmt.Println(parseMatchWrappers(matchWrappers))
 }
 
 func retrievePageSource(url string) []byte {
@@ -29,20 +29,19 @@ func retrievePageSource(url string) []byte {
   return body
 }
 
-func scrape_children_of_highest_container(highest_container []xml.Node) []match {
+func parseMatchWrappers(matchWrappers []xml.Node) []match {
   out := []match{}
-  for i := range highest_container {
-    headline, err := highest_container[i].Search(".//*[@class='headline']")
+  for i := range matchWrappers {
+    matchWrapperInfo, err := matchWrappers[i].Search(".//*[@class='info']")
     errorHandler(err)
-
-    subhead, err := highest_container[i].Search(".//*[@class='sub-head']")
-    errorHandler(err)
-
-    for j := range subhead {
-      temp := match{matchDate:headline[0].String(), teams:subhead[j].String()}
-      out = append(out,temp)
+    for j := range matchWrapperInfo {
+      res, err := matchWrapperInfo[j].Search(".//dd")
+      errorHandler(err)
+      if len(res) == 5 {
+        temp := match{res[4].Content(), res[2].Content()}
+        out = append(out, temp)
+      }
     }
-
   }
   return out
 }
