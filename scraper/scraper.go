@@ -14,10 +14,10 @@ func ScrapeAllTheThings(url string) {
   doc, err := gokogiri.ParseHtml(pageSource)
   errorHandler(err)
   defer doc.Free()
-  matchWrappers, err := doc.Search(".//*[@class='match-wrapper']")
+  matches, err := doc.Search(".//*[@class='item-container clearfix match collapsed']")
   errorHandler(err)
 
-  fmt.Println(parseMatchWrappers(matchWrappers))
+  fmt.Println(parseMatches(matches))
 }
 
 func retrievePageSource(url string) []byte {
@@ -29,19 +29,26 @@ func retrievePageSource(url string) []byte {
   return body
 }
 
-func parseMatchWrappers(matchWrappers []xml.Node) []match {
+func parseMatches(matches []xml.Node) []match {
   out := []match{}
-  for i := range matchWrappers {
-    matchWrapperInfo, err := matchWrappers[i].Search(".//*[@class='info']")
+  for i := range matches {
+    temp := match{}
+
+    res, err := matches[i].Search(".//*[@class='spoilers winner']")
     errorHandler(err)
-    for j := range matchWrapperInfo {
-      res, err := matchWrapperInfo[j].Search(".//dd")
+    if len(res) == 1 {
+      winrar, err := res[0].Search(".//*[@class='player-name']")
       errorHandler(err)
-      if len(res) == 5 {
-        temp := match{res[4].Content(), res[2].Content()}
-        out = append(out, temp)
-      }
+      temp.winrar = winrar[0].Content()
     }
+
+    res, err = matches[i].Search(".//dd")
+    errorHandler(err)
+    if len(res) == 5 {
+      temp.matchDate = res[4].Content()
+      temp.teams = res[2].Content()
+    }
+    out = append(out, temp)
   }
   return out
 }
