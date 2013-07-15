@@ -4,6 +4,7 @@ import (
   "fmt"
   "io/ioutil"
   "net/http"
+  "regexp"
   "github.com/moovweb/gokogiri"
   "github.com/moovweb/gokogiri/xml"
 )
@@ -33,16 +34,22 @@ func parseMatches(matches []xml.Node) []match {
   out := []match{}
   for i := range matches {
     temp := match{}
-
-    res, err := matches[i].Search(".//*[@class='spoilers winner']")
+    players, err := matches[i].Search(".//*[@class='player-name']")
     errorHandler(err)
-    if len(res) == 1 {
-      winrar, err := res[0].Search(".//*[@class='player-name']")
-      errorHandler(err)
-      temp.winrar = winrar[0].Content()
+    if len(players) == 3 {
+      temp.player1Name = players[0].Content()
+      temp.player2Name = players[1].Content()
+      temp.winrar= players[2].Content()
     }
 
-    res, err = matches[i].Search(".//dd")
+    races, err := matches[i].Search(".//*[@class='race-icon']")
+    errorHandler(err)
+    if len(races) == 2 {
+      temp.player1Race = parseRace(races[0].String())
+      temp.player2Race = parseRace(races[1].String())
+    }
+
+    res, err := matches[i].Search(".//dd")
     errorHandler(err)
     if len(res) == 5 {
       temp.matchDate = res[4].Content()
@@ -51,4 +58,10 @@ func parseMatches(matches []xml.Node) []match {
     out = append(out, temp)
   }
   return out
+}
+
+func parseRace(html string) string {
+  regex, err := regexp.Compile(`Protoss|Terran|Zerg`)
+  errorHandler(err)
+  return regex.FindString(html)
 }
