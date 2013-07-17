@@ -2,14 +2,12 @@ package scraper
 
 import (
   "fmt"
-  "io/ioutil"
-  "net/http"
   "regexp"
   "github.com/moovweb/gokogiri"
   "github.com/moovweb/gokogiri/xml"
 )
 
-func ScrapeAllTheThings(url string) {
+func ScrapeMatches(url string) {
   pageSource := retrievePageSource(url)
 
   doc, err := gokogiri.ParseHtml(pageSource)
@@ -19,15 +17,6 @@ func ScrapeAllTheThings(url string) {
   errorHandler(err)
 
   fmt.Println(parseMatches(matches))
-}
-
-func retrievePageSource(url string) []byte {
-  resp, err := http.Get(url)
-  errorHandler(err)
-  defer resp.Body.Close()
-  body, err := ioutil.ReadAll(resp.Body)
-  errorHandler(err)
-  return body
 }
 
 func parseMatches(matches []xml.Node) []match {
