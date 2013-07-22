@@ -2,7 +2,6 @@ package scraper
 
 import (
   "fmt"
-  "regexp"
   "github.com/moovweb/gokogiri"
   "github.com/moovweb/gokogiri/xml"
 )
@@ -47,10 +46,4 @@ func parseMatches(matches []xml.Node) []match {
     out = append(out, temp)
   }
   return out
-}
-
-func parseRace(html string) string {
-  regex, err := regexp.Compile(`Protoss|Terran|Zerg`)
-  errorHandler(err)
-  return regex.FindString(html)
 }
