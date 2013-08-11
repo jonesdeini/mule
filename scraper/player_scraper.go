@@ -1,7 +1,9 @@
 package scraper
 
 import (
+  "bytes"
   "fmt"
+  "net/http"
   "github.com/moovweb/gokogiri"
   "github.com/moovweb/gokogiri/xml"
 )
@@ -12,10 +14,11 @@ func ScrapePlayers(url string) {
   doc, err := gokogiri.ParseHtml(pageSource)
   errorHandler(err)
   defer doc.Free()
-  players, err := doc.Search("//*[contains(@class, 'item-container')]")
-  parsePlayers(players)
-  /* results := parsePlayers(players) */
-  /* fmt.Println(results[0]) */
+  playerContainers, err := doc.Search("//*[contains(@class, 'item-container')]")
+  players := parsePlayers(playerContainers)
+  json := marshalSlice(players)
+  buffer := bytes.NewBuffer(json)
+  http.Post("http://our_dumb_url_bro", "application/json", buffer)
 }
 
 func parsePlayers(players []xml.Node) []player {
@@ -26,15 +29,14 @@ func parsePlayers(players []xml.Node) []player {
   for i := range players {
     temp := player{}
     itemContainer := players[i].FirstChild()
-    temp.realName = itemContainer.FirstChild().Content()
-    temp.tags = itemContainer.NextSibling().Content()
+    temp.RealName = itemContainer.FirstChild().Content()
+    temp.Tags = itemContainer.NextSibling().Content()
 
     // parse races
     races, err := players[i].Search(".//img")
     errorHandler(err)
     for j := range races {
-      temp.races = append(temp.races, parseRace(races[j].String()))
-
+      temp.Races = append(temp.Races, parseRace(races[j].String()))
     }
 
     out = append(out, temp)
